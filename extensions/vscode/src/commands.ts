@@ -268,7 +268,7 @@ const commandsMap: (
 
       addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-      vscode.commands.executeCommand("pearai.focusContinueInput")
+      vscode.commands.executeCommand("pearai.focusContinueInput");
     },
     // Passthrough for telemetry purposes
     "pearai.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -761,6 +761,46 @@ const commandsMap: (
     },
     "pearai.macResizeAuxiliaryBarWidth": () => {
       vscode.commands.executeCommand("pearai.resizeAuxiliaryBarWidth");
+    },
+    "pearai.patchWSL": async () => {
+      const patchScript = path.join(
+        extensionContext.extensionPath,
+        "scripts/fix-wsl.ps1",
+      );
+
+      if (!fs.existsSync(patchScript)) {
+        vscode.window.showWarningMessage("Patch script not found.");
+        return;
+      }
+
+      let commitId = "";
+      const productJsonPath = path.join(vscode.env.appRoot, 'product.json');
+      try {
+        const productJson = JSON.parse(fs.readFileSync(productJsonPath, 'utf8'));
+        commitId = productJson.commit;
+        vscode.window.showInformationMessage(`commit: ${commitId}`);
+      } catch (error) {
+        console.error('Error reading product.json:', error);
+      }
+
+      if (!commitId) {
+        vscode.window.showWarningMessage("Unable to retrieve VS Code commit ID.");
+        return;
+      }
+      
+      const terminal = vscode.window.createTerminal({
+        name: "WSL Patch",
+        shellPath: "powershell.exe"
+      });
+
+      terminal.sendText(
+        `powershell.exe -ExecutionPolicy Bypass -File "${patchScript}" -CommitId "${commitId}"`,
+      );
+
+      terminal.show();
+      // } else {
+      //   vscode.window.showWarningMessage("No script selected.");
+      // }
     },
   };
 };
