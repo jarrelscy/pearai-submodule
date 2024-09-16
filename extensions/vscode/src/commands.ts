@@ -763,10 +763,28 @@ const commandsMap: (
       vscode.commands.executeCommand("pearai.resizeAuxiliaryBarWidth");
     },
     "pearai.patchWSL": async () => {
-      const patchScript = path.join(
-        extensionContext.extensionPath,
-        "scripts/fix-wsl.ps1",
+      const pearExtensionDir = extensionContext.extensionPath;
+      const allExtensionsDir = path.dirname(pearExtensionDir);
+
+      const allInstalledExtensions = fs
+        .readdirSync(allExtensionsDir, { withFileTypes: true })
+        .filter((dirent) => dirent.isDirectory())
+        .map((dirent) => path.join(allExtensionsDir, dirent.name));
+
+      const wslExtensionDir = allInstalledExtensions.find((dir) => 
+        path.basename(dir).toLowerCase().includes("wsl")
       );
+
+      if (!wslExtensionDir) {
+        vscode.window.showInformationMessage("Please install WSL extension first, then try again.");
+        return;
+      }
+      // vscode.window.showInformationMessage(`WSL extension found: ${wslExtensionDir}`);
+      const wslDownloadScript = path.join( wslExtensionDir, "scripts", "wslDownload.sh" );
+      vscode.window.showInformationMessage(`WSL download script path: ${wslDownloadScript}`);
+      // vscode.window.showInformationMessage(`Extensions are installed in: ${allExtensionsDir}`);
+
+      const patchScript = path.join(pearExtensionDir, "scripts/fix-wsl.ps1");
 
       if (!fs.existsSync(patchScript)) {
         vscode.window.showWarningMessage("Patch script not found.");
@@ -774,33 +792,35 @@ const commandsMap: (
       }
 
       let commitId = "";
-      const productJsonPath = path.join(vscode.env.appRoot, 'product.json');
+      const productJsonPath = path.join(vscode.env.appRoot, "product.json");
       try {
-        const productJson = JSON.parse(fs.readFileSync(productJsonPath, 'utf8'));
+        const productJson = JSON.parse(
+          fs.readFileSync(productJsonPath, "utf8"),
+        );
         commitId = productJson.commit;
-        vscode.window.showInformationMessage(`commit: ${commitId}`);
+        vscode.window.showInformationMessage(`VSC commit: ${commitId}`);
+        vscode.window.showInformationMessage(`Downloading WSL`);
       } catch (error) {
-        console.error('Error reading product.json:', error);
+        console.error("Error reading product.json:", error);
       }
 
       if (!commitId) {
-        vscode.window.showWarningMessage("Unable to retrieve VS Code commit ID.");
+        vscode.window.showWarningMessage(
+          "Unable to retrieve VS Code commit ID.",
+        );
         return;
       }
-      
+
       const terminal = vscode.window.createTerminal({
         name: "WSL Patch",
         shellPath: "powershell.exe"
       });
 
       terminal.sendText(
-        `powershell.exe -ExecutionPolicy Bypass -File "${patchScript}" -CommitId "${commitId}"`,
+        `powershell.exe -ExecutionPolicy Bypass -File "${patchScript}" -wslDownloadScript "${wslDownloadScript}" -CommitId "${commitId}"`,
       );
 
       terminal.show();
-      // } else {
-      //   vscode.window.showWarningMessage("No script selected.");
-      // }
     },
   };
 };
