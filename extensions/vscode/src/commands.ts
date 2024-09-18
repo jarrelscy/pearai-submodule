@@ -791,22 +791,34 @@ const commandsMap: (
         return;
       }
 
-      let commitId = "";
+      let PEAR_COMMIT_ID = "";
+      let VSC_COMMIT_ID = "";
       const productJsonPath = path.join(vscode.env.appRoot, "product.json");
       try {
         const productJson = JSON.parse(
           fs.readFileSync(productJsonPath, "utf8"),
         );
-        commitId = productJson.commit;
-        vscode.window.showInformationMessage(`VSC commit: ${commitId}`);
+        PEAR_COMMIT_ID = productJson.commit;
+        VSC_COMMIT_ID = productJson.VSCodeCommit;
+        // test commit id - I forgot from where I got this VSC_COMMIT_ID, its version 1.89 most probably.
+        VSC_COMMIT_ID = "4849ca9bdf9666755eb463db297b69e5385090e3"
+        PEAR_COMMIT_ID="226ba2c8530372cc3d1c3370ca1c5dced89bc195"
+        vscode.window.showInformationMessage(`VSC commit: ${VSC_COMMIT_ID}`);
         vscode.window.showInformationMessage(`Downloading WSL`);
       } catch (error) {
         console.error("Error reading product.json:", error);
       }
 
-      if (!commitId) {
+      if (!PEAR_COMMIT_ID) {
         vscode.window.showWarningMessage(
-          "Unable to retrieve VS Code commit ID.",
+          "Unable to retrieve PEAR commit ID.",
+        );
+        return;
+      }
+
+      if (!VSC_COMMIT_ID) {
+        vscode.window.showWarningMessage(
+          "Unable to retrieve VSCODE commit ID.",
         );
         return;
       }
@@ -817,7 +829,7 @@ const commandsMap: (
       });
 
       terminal.sendText(
-        `powershell.exe -ExecutionPolicy Bypass -File "${patchScript}" -wslDownloadScript "${wslDownloadScript}" -CommitId "${commitId}"`,
+        `powershell.exe -ExecutionPolicy Bypass -File "${patchScript}" -wslDownloadScript "${wslDownloadScript}" -PEAR_COMMIT_ID "${PEAR_COMMIT_ID}" -VSC_COMMIT_ID "${VSC_COMMIT_ID}"`,
       );
 
       terminal.show();
