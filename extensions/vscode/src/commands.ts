@@ -801,8 +801,8 @@ const commandsMap: (
         PEAR_COMMIT_ID = productJson.commit;
         VSC_COMMIT_ID = productJson.VSCodeCommit;
         // test commit id - I forgot from where I got this VSC_COMMIT_ID, its version 1.89 most probably.
-        VSC_COMMIT_ID = "4849ca9bdf9666755eb463db297b69e5385090e3"
-        PEAR_COMMIT_ID="226ba2c8530372cc3d1c3370ca1c5dced89bc195"
+        // VSC_COMMIT_ID = "4849ca9bdf9666755eb463db297b69e5385090e3";
+        // PEAR_COMMIT_ID="226ba2c8530372cc3d1c3370ca1c5dced89bc195";
         vscode.window.showInformationMessage(`VSC commit: ${VSC_COMMIT_ID}`);
         vscode.window.showInformationMessage(`Downloading WSL`);
       } catch (error) {
