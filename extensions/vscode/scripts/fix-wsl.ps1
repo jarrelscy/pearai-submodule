@@ -57,11 +57,11 @@ if ($editfileCheckResult -ne "edit file exist") {
 Write-Output "Executing WSL download script"
 
 try {
-    $timeoutSeconds = 300  # Set a timeout of 5 minutes (adjust as needed)
+    $timeoutSeconds = 600  # Set a timeout of 10 minutes
     $job = Start-Job -ScriptBlock {
-        param($tempDownloadScriptPath, $PEAR_COMMIT_ID, $wslUser)
-        wsl -e bash -c "$tempDownloadScriptPath '4849ca9bdf9666755eb463db297b69e5385090e3' 'stable' '/home/$wslUser/.pearai-server/bin'"
-    } -ArgumentList $tempDownloadScriptPath, $PEAR_COMMIT_ID, $wslUser
+        param($tempDownloadScriptPath, $VSC_COMMIT_ID, $wslUser)
+        wsl -e bash -c "$tempDownloadScriptPath '$VSC_COMMIT_ID' 'stable' '/home/$wslUser/.pearai-server/bin'"
+    } -ArgumentList $tempDownloadScriptPath, $VSC_COMMIT_ID, $wslUser
 
     $result = $job | Wait-Job -Timeout $timeoutSeconds | Receive-Job
     Write-Output $result
