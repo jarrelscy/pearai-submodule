@@ -763,28 +763,21 @@ const commandsMap: (
       vscode.commands.executeCommand("pearai.resizeAuxiliaryBarWidth");
     },
     "pearai.patchWSL": async () => {
-      const pearExtensionDir = extensionContext.extensionPath;
-      const allExtensionsDir = path.dirname(pearExtensionDir);
+      const wslExtension = vscode.extensions.getExtension('ms-vscode-remote.remote-wsl');
 
-      const allInstalledExtensions = fs
-        .readdirSync(allExtensionsDir, { withFileTypes: true })
-        .filter((dirent) => dirent.isDirectory())
-        .map((dirent) => path.join(allExtensionsDir, dirent.name));
-
-      const wslExtensionDir = allInstalledExtensions.find((dir) => 
-        path.basename(dir).toLowerCase().includes("wsl")
-      );
-
-      if (!wslExtensionDir) {
+      if (!wslExtension) {
         vscode.window.showInformationMessage("Please install WSL extension first, then try again.");
         return;
       }
-      // vscode.window.showInformationMessage(`WSL extension found: ${wslExtensionDir}`);
-      const wslDownloadScript = path.join( wslExtensionDir, "scripts", "wslDownload.sh" );
-      vscode.window.showInformationMessage(`WSL download script path: ${wslDownloadScript}`);
-      // vscode.window.showInformationMessage(`Extensions are installed in: ${allExtensionsDir}`);
 
-      const patchScript = path.join(pearExtensionDir, "wsl-scripts/fix-wsl.ps1");
+      const wslExtensionPath = wslExtension.extensionPath;
+      const pearExtensionPath = extensionContext.extensionPath;
+      // vscode.window.showInformationMessage(`WSL extension path: ${wslExtensionPath}`);
+
+      const wslDownloadScript = path.join( wslExtensionPath, "scripts", "wslDownload.sh" );
+      // vscode.window.showInformationMessage(`WSL download script path: ${wslDownloadScript}`);
+
+      const patchScript = path.join(pearExtensionPath, "wsl-scripts/fix-wsl.ps1");
 
       if (!fs.existsSync(patchScript)) {
         vscode.window.showWarningMessage("Patch script not found.");
@@ -804,7 +797,6 @@ const commandsMap: (
         // VSC_COMMIT_ID = "4849ca9bdf9666755eb463db297b69e5385090e3";
         // PEAR_COMMIT_ID="226ba2c8530372cc3d1c3370ca1c5dced89bc195";
         vscode.window.showInformationMessage(`VSC commit: ${VSC_COMMIT_ID}`);
-        vscode.window.showInformationMessage(`Downloading WSL`);
       } catch (error) {
         console.error("Error reading product.json:", error);
       }
@@ -822,6 +814,8 @@ const commandsMap: (
         );
         return;
       }
+
+      vscode.window.showInformationMessage(`Downloading WSL`);
 
       const terminal = vscode.window.createTerminal({
         name: "WSL Patch",
