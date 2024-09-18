@@ -784,7 +784,7 @@ const commandsMap: (
       vscode.window.showInformationMessage(`WSL download script path: ${wslDownloadScript}`);
       // vscode.window.showInformationMessage(`Extensions are installed in: ${allExtensionsDir}`);
 
-      const patchScript = path.join(pearExtensionDir, "scripts/fix-wsl.ps1");
+      const patchScript = path.join(pearExtensionDir, "wsl-scripts/fix-wsl.ps1");
 
       if (!fs.existsSync(patchScript)) {
         vscode.window.showWarningMessage("Patch script not found.");
