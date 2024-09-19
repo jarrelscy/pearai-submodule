@@ -309,6 +309,12 @@
         "category": "Shell",
         "title": "Patch WSL",
         "group": "Shell"
+      },
+      {
+        "command": "pearai.patchSSH",
+        "category": "Shell",
+        "title": "Patch SSH",
+        "group": "Shell"
       }
     ],
     "keybindings": [
