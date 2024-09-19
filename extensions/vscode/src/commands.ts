@@ -772,12 +772,8 @@ const commandsMap: (
 
       const wslExtensionPath = wslExtension.extensionPath;
       const pearExtensionPath = extensionContext.extensionPath;
-      // vscode.window.showInformationMessage(`WSL extension path: ${wslExtensionPath}`);
-
       const wslDownloadScript = path.join( wslExtensionPath, "scripts", "wslDownload.sh" );
-      // vscode.window.showInformationMessage(`WSL download script path: ${wslDownloadScript}`);
-
-      const patchScript = path.join(pearExtensionPath, "wsl-scripts/fix-wsl.ps1");
+      const patchScript = path.join(pearExtensionPath, "wsl-scripts/wslPatch.sh");
 
       if (!fs.existsSync(patchScript)) {
         vscode.window.showWarningMessage("Patch script not found.");
@@ -793,11 +789,12 @@ const commandsMap: (
         );
         PEAR_COMMIT_ID = productJson.commit;
         VSC_COMMIT_ID = productJson.VSCodeCommit;
-        // test commit id - I forgot from where I got this VSC_COMMIT_ID, its version 1.89 most probably.
-        // VSC_COMMIT_ID = "4849ca9bdf9666755eb463db297b69e5385090e3";
-        // PEAR_COMMIT_ID="226ba2c8530372cc3d1c3370ca1c5dced89bc195";
+        // testing commit ids - its for VSC version 1.89 most probably. 
+        VSC_COMMIT_ID = "4849ca9bdf9666755eb463db297b69e5385090e3";
+        PEAR_COMMIT_ID="58996b5e761a7fe74bdfb4ac468e4b91d4d27294";
         vscode.window.showInformationMessage(`VSC commit: ${VSC_COMMIT_ID}`);
       } catch (error) {
+        vscode.window.showErrorMessage("Error reading product.json");
         console.error("Error reading product.json:", error);
       }
 
@@ -817,15 +814,19 @@ const commandsMap: (
 
       vscode.window.showInformationMessage(`Downloading WSL`);
 
-      const terminal = vscode.window.createTerminal({
-        name: "WSL Patch",
-        shellPath: "powershell.exe"
-      });
+      let terminal: vscode.Terminal;
 
-      terminal.sendText(
-        `powershell.exe -ExecutionPolicy Bypass -File "${patchScript}" -wslDownloadScript "${wslDownloadScript}" -PEAR_COMMIT_ID "${PEAR_COMMIT_ID}" -VSC_COMMIT_ID "${VSC_COMMIT_ID}"`,
-      );
+      try {
+        terminal = vscode.window.createTerminal({
+          name: "WSL Patch",
+          shellPath: "wsl.exe"
+        });
+      } catch (error) {
+        vscode.window.showErrorMessage("WSL is not installed. Please install WSL and try again.");
+        return;
+      }
 
+      terminal.sendText(`$(wslpath '${patchScript}') $(wslpath '${wslDownloadScript}') '${PEAR_COMMIT_ID}' '${VSC_COMMIT_ID}'`);
       terminal.show();
     },
   };

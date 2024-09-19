@@ -1,22 +1,47 @@
 #!/bin/bash
 
-# * Save this script with EOL as LF, otherwise it will fail to run
-# * this script will be executed from ps1 script
-# * this script is intended to be run inside the WSL environment
+# ***********************************************
+# * Save this script with EOL as LF,            *
+# * otherwise, it will fail to run              *
+# ***********************************************
+# * This script is intended to be run inside    *
+# * the WSL environment                         *
+# ***********************************************
 
 # Set -x for debug output
 # set -x
 
-wslUser=$1
+wslUser=$(whoami)
+wslDownloadScript=$1
 PEAR_COMMIT_ID=$2
 VSC_COMMIT_ID=$3
 quality="stable" # pear only has stable right now, no insiders.
 
+echo "PEAR_COMMIT_ID: $PEAR_COMMIT_ID"
+echo "VSC_COMMIT_ID: $VSC_COMMIT_ID"
+
 # ----------------------------
 
 pearServerLocation="/home/$wslUser/.pearai-server/bin"
-serverFile="$pearServerLocation/$VSC_COMMIT_ID/out/vs/server/node/server.main.js"
 productJsonFile="$pearServerLocation/$VSC_COMMIT_ID/product.json"
+serverFile="$pearServerLocation/$VSC_COMMIT_ID/out/vs/server/node/server.main.js"
+
+# ----------------------------
+
+# Download the server files
+if [ ! -f "$wslDownloadScript" ]; then
+    echo "wslDownloadScript not found: $wslDownloadScript"
+    exit 1
+fi
+
+echo "Running wslDownloadScript: $wslDownloadScript"
+bash "$wslDownloadScript" "$VSC_COMMIT_ID" "$quality" "$pearServerLocation" 
+if [ $? -eq 0 ]; then
+    echo "wslDownloadScript executed successfully"
+else
+    echo "wslDownloadScript failed to execute"
+    exit 1
+fi
 
 # ----------------------------
 
@@ -31,8 +56,7 @@ sed -i '0,/if(!\([A-Za-z0-9_]*\)){if(this\.\([A-Za-z0-9_]*\)\.isBuilt)return \([
 
 # Check if the sed command was successful
 if [ $? -eq 0 ]; then
-    echo "File successfully patched server file: $serverFile"
-    echo "PearCommitID: $PEAR_COMMIT_ID"
+    echo "Successfully patched server file: $serverFile"
 else
     echo "Failed to patch server file: $serverFile"
     exit 1
@@ -51,7 +75,7 @@ sed -i "s/\"commit\": \"[^\"]*\"/\"commit\": \"$PEAR_COMMIT_ID\"/" "$productJson
 
 # Check if the sed command was successful
 if [ $? -eq 0 ]; then
-    echo "Product JSON file successfully modified: $productJsonFile"
+    echo "Successfully patched Product JSON file: $productJsonFile"
 else
     echo "Failed to modify the Product JSON file: $productJsonFile"
     exit 1
@@ -63,18 +87,24 @@ fi
 if [ -d "$pearServerLocation/$VSC_COMMIT_ID" ]; then
     mv "$pearServerLocation/$VSC_COMMIT_ID" "$pearServerLocation/$PEAR_COMMIT_ID"
     if [ $? -eq 0 ]; then
-        echo "Successfully renamed folder to $pearServerLocation/$PEAR_COMMIT_ID"
+        echo "Successfully renamed server folder to $pearServerLocation/$PEAR_COMMIT_ID"
     else
-        echo "Failed to rename folder"
+        echo "Failed to rename server folder"
         exit 1
     fi
 else
-    echo "Source folder $pearServerLocation/$VSC_COMMIT_ID does not exist"
+    echo "server folder $pearServerLocation/$VSC_COMMIT_ID does not exist"
     exit 1
 fi
 
 # ----------------------------
 
-# Update variables to use the new folder name
+# new paths now -
 serverFile="$pearServerLocation/$PEAR_COMMIT_ID/out/vs/server/node/server.main.js"
 productJsonFile="$pearServerLocation/$PEAR_COMMIT_ID/product.json"
+
+# ----------------------------
+
+cd ~
+echo -e "\nWSL INSTALLED AND PATCHED" 
+echo -e "you can close this terminal now"
