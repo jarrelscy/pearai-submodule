@@ -105,6 +105,4 @@ productJsonFile="$pearServerLocation/$PEAR_COMMIT_ID/product.json"
 
 # ----------------------------
 
-cd ~
-echo -e "\nWSL INSTALLED AND PATCHED" 
-echo -e "you can close this terminal now"
+echo -e "\nWSL INSTALLED AND PATCHED - you can close this terminal now" 
