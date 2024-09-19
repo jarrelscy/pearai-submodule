@@ -763,6 +763,11 @@ const commandsMap: (
       vscode.commands.executeCommand("pearai.resizeAuxiliaryBarWidth");
     },
     "pearai.patchWSL": async () => {
+      if (process.platform !== 'win32') {
+        vscode.window.showWarningMessage("WSL is for Windows only.");
+        return;
+      }
+      
       const wslExtension = vscode.extensions.getExtension('ms-vscode-remote.remote-wsl');
 
       if (!wslExtension) {
